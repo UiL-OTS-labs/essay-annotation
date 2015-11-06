@@ -1,2 +1,2 @@
 # essay-annotation
-Parses essay annotation into Alpino XML and back
+Parses essay annotation into FoLiA XML and back

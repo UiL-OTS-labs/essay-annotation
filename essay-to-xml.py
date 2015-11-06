@@ -44,9 +44,26 @@ class PartAnnotation():
         child.start = start
         child.end = end
 
-    def to_folia_sentence(self, paragraph):
+    def to_folia_sentence(self, doc, paragraph):
         sentence = paragraph.add(folia.Sentence)
-        tokens = tokenize(self.original)
+        parts = []
+        for c in self.children:
+            parts.append((c.start, c.end, c))
+        if not parts:
+            parts.append((len(self.original), len(self.original), None))
+
+        current_position = 0
+        for p in parts:
+            print p[0]
+            tokens = tokenize(self.original[current_position:p[0]])
+            for token in tokens:
+                sentence.add(folia.Word, token)
+            if p[2]:
+                word = sentence.add(folia.Word)
+                word.add(folia.Correction, folia.New(doc, p[2].edited), folia.Original(doc, p[2].original), cls=p[2].unit)
+
+            current_position = p[1]
+        tokens = tokenize(self.original[current_position:])
         for token in tokens:
             sentence.add(folia.Word, token)
 
@@ -76,7 +93,7 @@ def match_inner(s, pa=None):
     if not pa:
         pa = PartAnnotation(s, None)
     for match in matches:
-        print 'match', match.group(1), match.group(2)
+        #print 'match', match.group(1), match.group(2)
         if match.start(0) == 0:
             sentence = match.group(1)
             annotation = match.group(2)
@@ -103,6 +120,7 @@ def count_brackets(line):
 
 def process_file():
     doc = folia.Document(id='example')
+    doc.declare(folia.Correction, 'https://raw.githubusercontent.com/UiL-OTS-labs/essay-annotation/config/corrections.foliaset.xml')
     text = doc.append(folia.Text)
     paragraph = text.add(folia.Paragraph)
     with codecs.open('data/T1_VOWY0Q147044.txt', 'rb') as f:
@@ -110,10 +128,11 @@ def process_file():
             line = line.strip()
             if count_brackets(line):
                 pa = extract_corrections(line)
-                pa.to_folia_sentence(paragraph)
+                pa.to_folia_sentence(doc, paragraph)
+                print pa
             else:
                 print 'Number of brackets does not match on line', n
-    doc.save('out.txt')
+    doc.save('data/out.txt')
 
 
 if __name__ == '__main__':

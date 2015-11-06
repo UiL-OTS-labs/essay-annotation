@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<set xml:id="corrections" type="closed" xmlns="http://ilk.uvt.nl/folia">
+    <class xml:id="FA" label="Flexie/affix" />
+</set>
