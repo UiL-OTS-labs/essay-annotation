@@ -1,0 +1,133 @@
+from pynlpl.formats import folia
+from pynlpl.textprocessors import tokenize
+
+class PartAnnotation():
+    def __init__(self, part, annotation):
+        self.split_part(part)
+        self.split_annotation(annotation)
+        self.parent = None
+        self.children = []
+        self.start = 0
+        self.end = len(self.original)
+
+    def split_part(self, part):
+        if '/' in part and '[' not in part:
+            parts = part.split('/')
+            self.original = parts[0]
+            self.edited = parts[1]
+            self.is_correction = True
+        else:
+            self.original = part
+            self.edited = None
+            self.is_correction = False
+
+    def split_annotation(self, annotation):
+        if annotation:
+            a = annotation.split('*')
+            self.annotation = annotation
+            self.unit = a[0]
+            self.problem = a[1] if len(a) >= 2 else None
+            self.pos = a[2] if len(a) == 3 else None
+        else:
+            self.annotation = None
+            self.unit = None
+            self.problem = None
+            self.pos = None
+
+    def add_child(self, child, start, end):
+        self.children.append(child)
+        child.parent = self
+        child.start = start
+        child.end = end
+
+    def get_child_nodes(self):
+        """
+        Returns the start and end positions of the children nodes as a list of tuples.
+        """
+        parts = []
+        for child in sorted(self.children, key=lambda c: c.start):
+            child_part = (child.start, child.end, child)
+            parts.append(child_part)
+        return parts
+
+    def to_folia_sentence_child(self, doc, sentence):
+        if self.is_correction: 
+            self.add_folia_correction(doc, sentence)
+        else:
+            words = []
+            for token in tokenize(self.original):
+                w = sentence.add(folia.Word, token)
+                words.append(w)
+            role = folia.SemanticRole(doc, *words, cls=self.unit)
+            # TODO: not yet allowed
+            #if self.problem:
+            #    role.add(folia.Feature, subset='problem', cls=self.problem)
+            return role
+
+    def add_folia_correction(self, doc, sentence):
+        """
+        Adds a folia.Correction to an existing folia.Sentence. 
+        """
+        # Tokenize both the original and the edited form.
+        original_tokens = tokenize(self.original)
+        edited_tokens = tokenize(self.edited)
+
+        # If we're dealing with single words (e.g. spelling errors), create the correction directly on the word.
+        if len(original_tokens) == 1 and len(edited_tokens) == 1:
+            w = sentence.add(folia.Word)
+            n = folia.New(doc, self.edited)
+            o = folia.Original(doc, self.original)
+            correction = w.add(folia.Correction, n, o, cls=self.unit)
+        # We are dealing with more than one word, or an insertion/deletion. Create word elements for each token.
+        else:
+            n = folia.New(doc)
+            o = folia.Original(doc)
+            for w in edited_tokens:
+                n.add(folia.Word, w, generate_id_in=sentence)
+            for w in original_tokens:
+                o.add(folia.Word, w, generate_id_in=sentence)
+            correction = sentence.add(folia.Correction, n, o, cls=self.unit)
+
+        # Add the problem and/or pos feature.
+        if self.problem:
+            correction.add(folia.Feature, subset='problem', cls=self.problem)
+        if self.pos:
+            correction.add(folia.Feature, subset='pos', cls=self.pos)
+
+    def to_folia_sentence(self, doc, sentence):
+        roles = []
+        current_position = 0
+        for start, end, node in self.get_child_nodes():
+            tokens = tokenize(self.original[current_position:start])
+            for token in tokens:
+                sentence.add(folia.Word, token)
+            if node.children:
+                roles = node.to_folia_sentence(doc, sentence)
+                roles.extend(roles)
+            else:
+                role = node.to_folia_sentence_child(doc, sentence)
+                if role:
+                    print role
+                    roles.append(role)
+            current_position = end
+
+        # Add final words
+        tokens = tokenize(self.original[current_position:self.end])
+        for token in tokens:
+            sentence.add(folia.Word, token)
+
+        # Append role on sentence level
+        # TODO: in a loop, this should be on word level
+        if self.unit:
+            role = folia.SemanticRole(doc, cls=self.unit)
+            roles.append(role)
+
+        return roles
+
+    def __str__(self):
+        result = '{} <{}*{}>'.format(self.original, self.unit, self.problem)
+        #if not self.parent:
+        #    result += '\nEdited: ' + self.edited
+        for c in self.children:
+            result += '\n\t' + str(c)
+        return result
