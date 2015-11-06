@@ -9,11 +9,6 @@ GREEDY_MATCH_TAG = re.compile(r'\[(.*)\](\w[\*\w]*)')
 NON_GREEDY_MATCH_TAG = re.compile(r'\[(.*?)\](\w[\*\w]*)')
 
 
-class MyCorrection(folia.Correction):
-    """Allow Corrections to have second-order annotation"""
-    ACCEPTED_DATA = folia.Correction.ACCEPTED_DATA + (folia.Feature,)
-
-
 class PartAnnotation():
     def __init__(self, part, annotation):
         self.split_part(part)
@@ -57,7 +52,7 @@ class PartAnnotation():
         # If we're dealing with single words (e.g. spelling errors), create the correction directly on the word.
         if len(original) == 1 and len(edited) == 1:
             word = sentence.add(folia.Word)
-            correction = word.add(MyCorrection, folia.New(doc, self.edited), folia.Original(doc, self.original), cls=self.unit)
+            correction = word.add(folia.Correction, folia.New(doc, self.edited), folia.Original(doc, self.original), cls=self.unit)
         # We are dealing with more than one word, or an insertion/deletion. Create word elements for each token.
         else:
             new = folia.New(doc)
@@ -67,7 +62,7 @@ class PartAnnotation():
             for w in original:
                 orig.add(folia.Word, w, generate_id_in=sentence)
 
-            correction = sentence.add(MyCorrection, new, orig, cls=self.unit)
+            correction = sentence.add(folia.Correction, new, orig, cls=self.unit)
 
         if self.problem:
             correction.add(folia.Feature, subset='problem', cls=self.problem)
