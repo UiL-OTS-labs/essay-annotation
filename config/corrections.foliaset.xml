@@ -1,4 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <set xml:id="corrections" type="closed" xmlns="http://ilk.uvt.nl/folia">
-    <class xml:id="FA" label="Flexie/affix" />
+    <class xml:id="FA" label="Flexie / affix" />
+    <class xml:id="S" label="Symbool" />
+    <class xml:id="SPA" label="Spatie" />
+    <class xml:id="SPE" label="Spelling" />
+    <class xml:id="WD" label="Woorddeel" />
+    <class xml:id="W" label="Woord" />
+    <subset xml:id="problem" class="closed">
+        <class xml:id="O" label="Ontbreekt" />
+        <class xml:id="W" label="Moet weg" />
+        <class xml:id="I" label="Incorrect" />
+        <class xml:id="V" label="Volgorde verkeerd" />
+        <class xml:id="ND" label="Niet duidelijk" />
+        <class xml:id="NP" label="Niet passend in genre" />
+        <class xml:id="GP" label="Gebrek aan parallellie" />
+        <class xml:id="SH" label="Storende herhaling" />
+        <class xml:id="ON" label="Onvolledig" />
+    </subset>
+    <subset xml:id="pos" class="closed">
+        <constraint>
+            <restrict class="FA" />
+            <restrict class="S" />
+            <restrict class="SPA" />
+            <restrict class="SPE" />
+            <restrict class="WD" />
+            <restrict class="W" />
+        </constraint>
+        <class xml:id="A" label="Adjectief" />
+        <class xml:id="B" label="Bijwoord" />
+        <class xml:id="I" label="Interjectie" />
+        <class xml:id="L" label="Lidwoord" />
+        <class xml:id="N" label="Nomen" />
+        <class xml:id="T" label="Telwoord" />
+        <class xml:id="VG" label="Voegwoord" />
+        <class xml:id="VN" label="Voornaamwoord" />
+        <class xml:id="VZ" label="Voorzetsel" />
+        <class xml:id="W" label="Werkwoord" />
+    </subset>
 </set>

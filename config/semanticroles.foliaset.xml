@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<set xml:id="semanticroles" type="closed" xmlns="http://ilk.uvt.nl/folia">
+    <class xml:id="AL" label="Aanleiding voor tekst" />
+</set>
