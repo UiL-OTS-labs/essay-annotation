@@ -15,6 +15,9 @@ LAZY_MATCH_TAG = re.compile(r'\[(.*?)\](\w[\*\w]*)')
 
 
 def match_outer(s, pa=None):
+    """
+    Matches the outer annotation (greedy) in a nested annotation. 
+    """
     match = GREEDY_MATCH_TAG.search(s)
     if match:
         sentence = match.group(1)
@@ -32,41 +35,51 @@ def match_outer(s, pa=None):
 
 
 def match_inner(s, pa=None):
-    matches = LAZY_MATCH_TAG.finditer(s)
+    """
+    Matches all inner annotations (lazy) in a non-nested annotation. 
+    """
     if not pa:
         pa = PartAnnotation(s, None)
+
+    matches = LAZY_MATCH_TAG.finditer(s)
     for match in matches:
+        sentence = match.group(1)
+        annotation = match.group(2)
         # If we match the whole sentence, create a new annotation
         if match.group(0) == s:
-            sentence = match.group(1)
-            annotation = match.group(2)
             pa = PartAnnotation(sentence, annotation)
         # Otherwise, add the matches to the existing annotation
         else:
-            pa.add_child(PartAnnotation(match.group(1), match.group(2)), match.start(0), match.end(0))
+            pa.add_child(PartAnnotation(sentence, annotation), match.start(0), match.end(0))
     return pa
 
 
 def extract_corrections(s, pa=None):
-    if has_inner(s):
-        if pa is not None:
-            pa = match_outer(s, pa)
-        else:
-            pa = match_outer(s)
+    if is_nested(s):
+        pa = match_outer(s, pa)
     else:
         pa = match_inner(s, pa)
     return pa
 
 
-def has_inner(s): 
+def is_nested(s):
+    """
+    Checks whether the string s has a nested structure.
+    """
     return HAS_INNER.search(s)
 
 
 def count_brackets(line):
+    """
+    Matches the number of brackets on a line.
+    """
     return line.count('[') == line.count(']')
 
 
 def start_folia_document(filename):
+    """
+    Creates a FoLiA document, declares the annotation types and adds a Text and Paragraph.
+    """
     doc = folia.Document(id=filename)
     doc.declare(folia.Correction, CORRECTIONS_SET)
     doc.declare(folia.SemanticRolesLayer, SEMANTICROLES_SET)
@@ -76,10 +89,20 @@ def start_folia_document(filename):
 
 
 def process_line(line, doc):
+    """
+    Processes a single line from the plain-text annotation and converts that to a FoLiA Sentence. 
+    """
+    # Create a new sentence in the document
+    sentence = doc.paragraphs().next().add(folia.Sentence)
+
+    # Strip the line and create a PartAnnotation structure
     line = line.strip()
     pa = extract_corrections(line)
-    sentence = doc.paragraphs().next().add(folia.Sentence)
+
+    # Convert the PartAnnotation structure to a FoLiA Sentence
     _, roles = pa.to_folia_sentence(doc, sentence)
+
+    # Add all collected roles to the SemanticRolesLayer
     if roles:
         layer = sentence.add(folia.SemanticRolesLayer)
         for role in roles:
@@ -87,6 +110,9 @@ def process_line(line, doc):
 
 
 def process_file(filename):
+    """
+    Processes a plain-text annotation file and converts that to FoLiA XML.
+    """
     with codecs.open(filename, 'rb') as f:
         doc = start_folia_document(os.path.splitext(os.path.basename(filename))[0])
         for n, line in enumerate(f):

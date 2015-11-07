@@ -67,7 +67,7 @@ class PartAnnotation():
 
     def add_folia_correction(self, doc, sentence):
         """
-        Adds a folia.Correction to an existing folia.Sentence. 
+        Adds a folia.Correction to an existing folia.Sentence. Output the created folia.Words.
         """
         words = []
 
