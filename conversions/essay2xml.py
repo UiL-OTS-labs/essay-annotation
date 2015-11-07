@@ -5,14 +5,15 @@ from pynlpl.formats import folia
 
 from models import PartAnnotation
 
+CORRECTIONS_SET = 'https://raw.githubusercontent.com/UiL-OTS-labs/essay-annotation/config/corrections.foliaset.xml'
+SEMANTICROLES_SET = 'https://raw.githubusercontent.com/UiL-OTS-labs/essay-annotation/config/semanticroles.foliaset.xml'
+
 HAS_INNER = re.compile(r'\[[^\]]*\[')
 GREEDY_MATCH_TAG = re.compile(r'\[(.*)\](\w[\*\w]*)')
-NON_GREEDY_MATCH_TAG = re.compile(r'\[(.*?)\](\w[\*\w]*)')
+LAZY_MATCH_TAG = re.compile(r'\[(.*?)\](\w[\*\w]*)')
 
 
 def match_outer(s, pa=None):
-    # TODO: this does not work:
-    # [Zwarte pieten/Zwarte Pieten]HN*O zijn zwart als [roed/roet]SPE*I*N [/.]L*O
     match = GREEDY_MATCH_TAG.search(s)
     if match:
         sentence = match.group(1)
@@ -30,7 +31,7 @@ def match_outer(s, pa=None):
 
 
 def match_inner(s, pa=None):
-    matches = NON_GREEDY_MATCH_TAG.finditer(s)
+    matches = LAZY_MATCH_TAG.finditer(s)
     if not pa:
         pa = PartAnnotation(s, None)
     for match in matches:
@@ -46,7 +47,7 @@ def match_inner(s, pa=None):
 
 
 def extract_corrections(s, pa=None):
-    if HAS_INNER.search(s):
+    if has_inner(s):
         if pa is not None:
             pa = match_outer(s, pa)
         else:
@@ -56,31 +57,44 @@ def extract_corrections(s, pa=None):
     return pa
 
 
+def has_inner(s): 
+    return HAS_INNER.search(s)
+
+
 def count_brackets(line):
     return line.count('[') == line.count(']')
 
 
-def process_file():
+def start_folia_document():
     doc = folia.Document(id='example')
-    doc.declare(folia.Correction, 'https://raw.githubusercontent.com/UiL-OTS-labs/essay-annotation/config/corrections.foliaset.xml')
-    doc.declare(folia.SemanticRolesLayer, 'https://raw.githubusercontent.com/UiL-OTS-labs/essay-annotation/config/semanticroles.foliaset.xml')
+    doc.declare(folia.Correction, CORRECTIONS_SET)
+    doc.declare(folia.SemanticRolesLayer, SEMANTICROLES_SET)
     text = doc.append(folia.Text)
     paragraph = text.add(folia.Paragraph)
-    with codecs.open('data/T1_VOWY0Q147044.txt', 'rb') as f:
+    return doc
+
+
+def process_line(line, doc):
+    line = line.strip()
+    pa = extract_corrections(line)
+    sentence = doc.paragraphs().next().add(folia.Sentence)
+    _, roles = pa.to_folia_sentence(doc, sentence)
+    if roles:
+        layer = sentence.add(folia.SemanticRolesLayer)
+        for role in roles:
+            layer.add(role)
+
+
+def process_file(filename):
+    with codecs.open(filename, 'rb') as f:
+        doc = start_folia_document()
         for n, line in enumerate(f):
-            line = line.strip()
             if count_brackets(line):
-                pa = extract_corrections(line)
-                sentence = paragraph.add(folia.Sentence)
-                _, roles = pa.to_folia_sentence(doc, sentence)
-                if roles:
-                    layer = sentence.add(folia.SemanticRolesLayer)
-                    for role in roles:
-                        layer.add(role)
+                process_line(line, doc)
             else:
                 print 'Number of brackets does not match on line', n
-    doc.save('data/out.xml')
+        doc.save('../data/out.xml')
 
 
 if __name__ == '__main__':
-    process_file()
+    process_file('../data/T1_VOWY0Q147044.txt')
