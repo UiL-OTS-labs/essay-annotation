@@ -80,7 +80,7 @@ class PartAnnotation():
             w = sentence.add(folia.Word)
             n = folia.New(doc, self.edited)
             o = folia.Original(doc, self.original)
-            correction = w.add(folia.Correction, n, o, cls=self.unit)
+            correction = w.add(folia.Correction, n, o, cls=self.unit, generate_id_in=sentence)
             words.append(w)
         # We are dealing with more than one word, or an insertion/deletion. Create word elements for each token.
         else:
@@ -91,7 +91,7 @@ class PartAnnotation():
                 words.append(word)
             for w in original_tokens:
                 o.add(folia.Word, w, generate_id_in=sentence)
-            correction = sentence.add(folia.Correction, n, o, cls=self.unit)
+            correction = sentence.add(folia.Correction, n, o, cls=self.unit, generate_id_in=sentence)
 
         # Add the problem and/or pos feature.
         if self.problem:

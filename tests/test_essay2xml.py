@@ -16,7 +16,7 @@ class TestEssay2XML(unittest.TestCase):
         self.assertTrue(count_brackets('[[]]'))
 
     def test_corrections(self):
-        doc = start_folia_document()
+        doc = start_folia_document('test')
         line = '[Zwarte pieten/Zwarte Pieten]HN*O zijn zwart als [roed/roet]SPE*I*N [/.]L*O'
         process_line(line, doc)
         self.assertEqual(str(doc.sentences().next()), 'Zwarte Pieten zijn zwart als roet .')

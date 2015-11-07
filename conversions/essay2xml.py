@@ -1,4 +1,5 @@
 import codecs
+import os
 import re
 
 from pynlpl.formats import folia
@@ -65,8 +66,8 @@ def count_brackets(line):
     return line.count('[') == line.count(']')
 
 
-def start_folia_document():
-    doc = folia.Document(id='example')
+def start_folia_document(filename):
+    doc = folia.Document(id=filename)
     doc.declare(folia.Correction, CORRECTIONS_SET)
     doc.declare(folia.SemanticRolesLayer, SEMANTICROLES_SET)
     text = doc.append(folia.Text)
@@ -87,7 +88,7 @@ def process_line(line, doc):
 
 def process_file(filename):
     with codecs.open(filename, 'rb') as f:
-        doc = start_folia_document()
+        doc = start_folia_document(os.path.splitext(os.path.basename(filename))[0])
         for n, line in enumerate(f):
             if count_brackets(line):
                 process_line(line, doc)
