@@ -51,10 +51,11 @@ class PartAnnotation():
         return parts
 
     def to_folia_sentence_child(self, doc, sentence):
+        words = []
+        role = None
         if self.is_correction: 
-            self.add_folia_correction(doc, sentence)
+            words.extend(self.add_folia_correction(doc, sentence))
         else:
-            words = []
             for token in tokenize(self.original):
                 w = sentence.add(folia.Word, token)
                 words.append(w)
@@ -62,12 +63,14 @@ class PartAnnotation():
             # TODO: not yet allowed
             #if self.problem:
             #    role.add(folia.Feature, subset='problem', cls=self.problem)
-            return role
+        return words, role
 
     def add_folia_correction(self, doc, sentence):
         """
         Adds a folia.Correction to an existing folia.Sentence. 
         """
+        words = []
+
         # Tokenize both the original and the edited form.
         original_tokens = tokenize(self.original)
         edited_tokens = tokenize(self.edited)
@@ -78,12 +81,14 @@ class PartAnnotation():
             n = folia.New(doc, self.edited)
             o = folia.Original(doc, self.original)
             correction = w.add(folia.Correction, n, o, cls=self.unit)
+            words.append(w)
         # We are dealing with more than one word, or an insertion/deletion. Create word elements for each token.
         else:
             n = folia.New(doc)
             o = folia.Original(doc)
             for w in edited_tokens:
-                n.add(folia.Word, w, generate_id_in=sentence)
+                word = n.add(folia.Word, w, generate_id_in=sentence)
+                words.append(word)
             for w in original_tokens:
                 o.add(folia.Word, w, generate_id_in=sentence)
             correction = sentence.add(folia.Correction, n, o, cls=self.unit)
@@ -94,35 +99,45 @@ class PartAnnotation():
         if self.pos:
             correction.add(folia.Feature, subset='pos', cls=self.pos)
 
+        return words
+
     def to_folia_sentence(self, doc, sentence):
-        roles = []
+        all_words = [] 
+        all_roles = []
+
+        # Loop over the child nodes
         current_position = 0
         for start, end, node in self.get_child_nodes():
+            # Add tokens until the start of the next child node to the sentence
             tokens = tokenize(self.original[current_position:start])
             for token in tokens:
-                sentence.add(folia.Word, token)
+                word = sentence.add(folia.Word, token)
+                all_words.append(word)
+            # If the child node has children, recurse
             if node.children:
-                roles = node.to_folia_sentence(doc, sentence)
-                roles.extend(roles)
+                words, roles = node.to_folia_sentence(doc, sentence)
+                all_words.extend(words)
+                all_roles.extend(roles)
+            # Else, add the child node
             else:
-                role = node.to_folia_sentence_child(doc, sentence)
+                words, role = node.to_folia_sentence_child(doc, sentence)
+                all_words.extend(words)
                 if role:
-                    print role
-                    roles.append(role)
+                    all_roles.append(role)
             current_position = end
 
-        # Add final words
+        # Add the tokens from the last child node to the end of this node
         tokens = tokenize(self.original[current_position:self.end])
         for token in tokens:
-            sentence.add(folia.Word, token)
+            word = sentence.add(folia.Word, token)
+            all_words.append(word)
 
-        # Append role on sentence level
-        # TODO: in a loop, this should be on word level
+        # If this node has a unit, add a role.
         if self.unit:
-            role = folia.SemanticRole(doc, cls=self.unit)
-            roles.append(role)
+            role = folia.SemanticRole(doc, *all_words, cls=self.unit)
+            all_roles.append(role)
 
-        return roles
+        return all_words, all_roles
 
     def __str__(self):
         result = '{} <{}*{}>'.format(self.original, self.unit, self.problem)

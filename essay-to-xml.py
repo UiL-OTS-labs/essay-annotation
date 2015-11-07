@@ -72,7 +72,7 @@ def process_file():
             if count_brackets(line):
                 pa = extract_corrections(line)
                 sentence = paragraph.add(folia.Sentence)
-                roles = pa.to_folia_sentence(doc, sentence)
+                _, roles = pa.to_folia_sentence(doc, sentence)
                 if roles:
                     layer = sentence.add(folia.SemanticRolesLayer)
                     for role in roles:
