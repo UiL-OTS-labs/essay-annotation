@@ -79,10 +79,12 @@ def count_brackets(line):
 def start_folia_document(filename):
     """
     Creates a FoLiA document, declares the annotation types and adds a Text and Paragraph.
+    TODO: set correct metadata.
     """
-    doc = folia.Document(id=filename)
-    doc.declare(folia.Correction, CORRECTIONS_SET)
-    doc.declare(folia.SemanticRolesLayer, SEMANTICROLES_SET)
+    doc = folia.Document(id=filename)  # deepvalidation=True)
+    doc.declare(folia.Correction, CORRECTIONS_SET, annotatortype=folia.AnnotatorType.MANUAL)
+    doc.declare(folia.SemanticRolesLayer, SEMANTICROLES_SET, annotatortype=folia.AnnotatorType.MANUAL)
+    doc.metadata = folia.NativeMetaData(score='88', time='3', words='110')
     text = doc.append(folia.Text)
     paragraph = text.add(folia.Paragraph)
     return doc
