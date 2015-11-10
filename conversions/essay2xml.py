@@ -6,8 +6,8 @@ from pynlpl.formats import folia
 
 from models import PartAnnotation
 
-CORRECTIONS_SET = 'https://raw.githubusercontent.com/UiL-OTS-labs/essay-annotation/config/corrections.foliaset.xml'
-SEMANTICROLES_SET = 'https://raw.githubusercontent.com/UiL-OTS-labs/essay-annotation/config/semanticroles.foliaset.xml'
+CORRECTIONS_SET = 'https://raw.githubusercontent.com/UiL-OTS-labs/essay-annotation/master/config/corrections.foliaset.xml'
+SEMANTICROLES_SET = 'https://raw.githubusercontent.com/UiL-OTS-labs/essay-annotation/master/config/semanticroles.foliaset.xml'
 
 HAS_INNER = re.compile(r'\[[^\]]*\[')
 GREEDY_MATCH_TAG = re.compile(r'\[(.*)\](\w[\*\w]*)')
@@ -16,7 +16,7 @@ LAZY_MATCH_TAG = re.compile(r'\[(.*?)\](\w[\*\w]*)')
 
 def match_outer(s, pa=None):
     """
-    Matches the outer annotation (greedy) in a nested annotation. 
+    Matches the outer annotation (greedy) in a nested annotation.
     """
     match = GREEDY_MATCH_TAG.search(s)
     if match:
@@ -36,7 +36,7 @@ def match_outer(s, pa=None):
 
 def match_inner(s, pa=None):
     """
-    Matches all inner annotations (lazy) in a non-nested annotation. 
+    Matches all inner annotations (lazy) in a non-nested annotation.
     """
     if not pa:
         pa = PartAnnotation(s, None)
@@ -81,18 +81,18 @@ def start_folia_document(filename):
     Creates a FoLiA document, declares the annotation types and adds a Text and Paragraph.
     TODO: set correct metadata.
     """
-    doc = folia.Document(id=filename)  # deepvalidation=True)
+    doc = folia.Document(id=filename)
     doc.declare(folia.Correction, CORRECTIONS_SET, annotatortype=folia.AnnotatorType.MANUAL)
-    doc.declare(folia.SemanticRolesLayer, SEMANTICROLES_SET, annotatortype=folia.AnnotatorType.MANUAL)
-    doc.metadata = folia.NativeMetaData(score='88', time='3', words='110')
+    doc.declare(folia.SemanticRole, SEMANTICROLES_SET, annotatortype=folia.AnnotatorType.MANUAL)
+    doc.metadata = folia.NativeMetaData(score='88', time='3', words='110')  # TODO: set this correctly
     text = doc.append(folia.Text)
-    paragraph = text.add(folia.Paragraph)
+    text.add(folia.Paragraph)
     return doc
 
 
 def process_line(line, doc):
     """
-    Processes a single line from the plain-text annotation and converts that to a FoLiA Sentence. 
+    Processes a single line from the plain-text annotation and converts that to a FoLiA Sentence.
     """
     # Create a new sentence in the document
     sentence = doc.paragraphs().next().add(folia.Sentence)
@@ -126,4 +126,4 @@ def process_file(filename):
 
 
 if __name__ == '__main__':
-    process_file('../data/T1_VOWY0Q147044.txt')
+    process_file('../data/T1_VOWYQ147140.txt')

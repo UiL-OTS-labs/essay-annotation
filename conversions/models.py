@@ -1,6 +1,7 @@
 from pynlpl.formats import folia
 from pynlpl.textprocessors import tokenize
 
+
 class PartAnnotation():
     def __init__(self, part, annotation):
         self.split_part(part)
@@ -53,7 +54,7 @@ class PartAnnotation():
     def to_folia_sentence_child(self, doc, sentence):
         words = []
         role = None
-        if self.is_correction: 
+        if self.is_correction:
             words.extend(self.add_folia_correction(doc, sentence))
         else:
             for token in tokenize(self.original):
@@ -102,7 +103,7 @@ class PartAnnotation():
         return words
 
     def to_folia_sentence(self, doc, sentence):
-        all_words = [] 
+        all_words = []
         all_roles = []
 
         # Loop over the child nodes
