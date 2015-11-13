@@ -2,6 +2,10 @@ from pynlpl.formats import folia
 from pynlpl.textprocessors import tokenize
 
 
+class MySemanticRole(folia.SemanticRole):
+    ACCEPTED_DATA = folia.SemanticRole.ACCEPTED_DATA + (folia.Feature,)
+
+
 class PartAnnotation():
     def __init__(self, part, annotation):
         self.split_part(part)
@@ -60,11 +64,19 @@ class PartAnnotation():
             for token in tokenize(self.original):
                 w = sentence.add(folia.Word, token)
                 words.append(w)
-            role = folia.SemanticRole(doc, *words, cls=self.unit)
+            role = MySemanticRole(doc, *words, cls=self.unit)
             # TODO: not yet allowed
-            #if self.problem:
-            #    role.add(folia.Feature, subset='problem', cls=self.problem)
+            self.add_features(role)
         return words, role
+
+    def add_features(self, obj):
+        """
+        Optiionally adds features to the given FoLiA object.
+        """
+        if self.problem:
+            obj.add(folia.Feature, subset='problem', cls=self.problem)
+        if self.pos:
+            obj.add(folia.Feature, subset='pos', cls=self.pos)
 
     def add_folia_correction(self, doc, sentence):
         """
@@ -95,10 +107,7 @@ class PartAnnotation():
             correction = sentence.add(folia.Correction, n, o, cls=self.unit, generate_id_in=sentence)
 
         # Add the problem and/or pos feature.
-        if self.problem:
-            correction.add(folia.Feature, subset='problem', cls=self.problem)
-        if self.pos:
-            correction.add(folia.Feature, subset='pos', cls=self.pos)
+        self.add_features(correction)
 
         return words
 
@@ -135,7 +144,8 @@ class PartAnnotation():
 
         # If this node has a unit, add a role.
         if self.unit:
-            role = folia.SemanticRole(doc, *all_words, cls=self.unit)
+            role = MySemanticRole(doc, *all_words, cls=self.unit)
+            self.add_features(role)
             all_roles.append(role)
 
         return all_words, all_roles

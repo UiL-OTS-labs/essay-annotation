@@ -116,13 +116,14 @@ def process_file(filename):
     Processes a plain-text annotation file and converts that to FoLiA XML.
     """
     with codecs.open(filename, 'rb') as f:
-        doc = start_folia_document(os.path.splitext(os.path.basename(filename))[0])
+        base = os.path.splitext(os.path.basename(filename))[0]
+        doc = start_folia_document(base)
         for n, line in enumerate(f):
             if count_brackets(line):
                 process_line(line, doc)
             else:
                 print 'Number of brackets does not match on line', n
-        doc.save('../data/out.xml')
+        doc.save('../data/' + base + '.xml')
 
 
 if __name__ == '__main__':

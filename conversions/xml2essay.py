@@ -13,7 +13,7 @@ for sentence in doc.sentences():
                 print word,
             print annotation.cls
 
-    if sentence.corrections(): 
+    if sentence.corrections():
         for correction in sentence.select(folia.Correction):
             o = correction.text(correctionhandling=O) if correction.hastext(correctionhandling=O) else ''
             n = correction.text() if correction.hastext() else ''
