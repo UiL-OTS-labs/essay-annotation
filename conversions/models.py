@@ -142,6 +142,11 @@ class PartAnnotation():
             word = sentence.add(folia.Word, token)
             all_words.append(word)
 
+        # Special case for empty sentences
+        if not all_words:
+            word = sentence.add(folia.Word)
+            all_words.append(word)
+
         # If this node has a unit, add a role.
         if self.unit:
             role = MySemanticRole(doc, *all_words, cls=self.unit)
