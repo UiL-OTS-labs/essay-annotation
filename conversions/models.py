@@ -144,7 +144,7 @@ class PartAnnotation():
 
         # Special case for empty sentences
         if not all_words:
-            word = sentence.add(folia.Word)
+            word = sentence.add(folia.Word, '<LEEG>')
             all_words.append(word)
 
         # If this node has a unit, add a role.

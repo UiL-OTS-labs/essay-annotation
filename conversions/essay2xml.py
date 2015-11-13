@@ -1,4 +1,5 @@
 import codecs
+import glob
 import os
 import re
 
@@ -111,7 +112,7 @@ def process_line(line, doc):
             layer.add(role)
 
 
-def process_file(filename):
+def process_file(dirname, filename):
     """
     Processes a plain-text annotation file and converts that to FoLiA XML.
     """
@@ -123,8 +124,13 @@ def process_file(filename):
                 process_line(line, doc)
             else:
                 print 'Number of brackets does not match on line', n
-        doc.save('../data/' + base + '.xml')
+        doc.save(dirname + '/out/' + base + '.xml')
+
+
+def process_folder(dirname):
+    for filename in glob.glob(dirname + '/*.txt'):
+        process_file(dirname, filename)
 
 
 if __name__ == '__main__':
-    process_file('../data/T1_VOWYQ147140.txt')
+    process_folder('../data')
