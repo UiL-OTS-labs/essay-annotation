@@ -408,7 +408,7 @@
 <xsl:template match="folia:w">
     <xsl:variable name="wid" select="@xml:id" />
     <xsl:if test="not(ancestor::folia:original) and not(ancestor::folia:suggestion) and not(ancestor::folia:alternative) and not(ancestor-or-self::*/auth)">
-        <span id="{@xml:id}"><xsl:attribute name="class">word<xsl:if test="//folia:wref[@id=$wid and not(ancestor::folia:altlayers)]"> sh</xsl:if><xsl:if test=".//folia:correction or .//folia:errordetection"> cor</xsl:if></xsl:attribute><span class="t"><xsl:value-of select="string(.//folia:t[not(ancestor-or-self::*/@auth) and not(ancestor::folia:morpheme) and not(ancestor::folia:str) and not(@class)])"/></span><xsl:call-template name="tokenannotations" /></span>
+        <span id="{@xml:id}"><xsl:attribute name="class">word<xsl:if test="//folia:wref[@id=$wid and not(ancestor::folia:altlayers)]"> sh</xsl:if><xsl:if test=".//folia:correction or ancestor::folia:correction or .//folia:errordetection"> cor</xsl:if></xsl:attribute><span class="t"><xsl:value-of select="string(.//folia:t[not(ancestor-or-self::*/@auth) and not(ancestor::folia:morpheme) and not(ancestor::folia:str) and not(@class)])"/></span><xsl:call-template name="tokenannotations" /></span>
     <xsl:choose>
        <xsl:when test="@space = 'no'"></xsl:when>
        <xsl:otherwise>
@@ -646,6 +646,31 @@
                     </span><br />
                 </xsl:if>
             </xsl:for-each>
+        </xsl:for-each>
+    </xsl:for-each>
+
+    <xsl:for-each select="$ancestors">
+        <xsl:for-each select="folia:correction">
+            <xsl:if test=".//folia:w[@xml:id=$id]">
+                <span class="attrlabel">Original text</span>
+                <span class="spanclass">
+                    <xsl:value-of select="@class" />
+                    <xsl:if test=".//folia:feat[@subset='problem']">
+                        <xsl:text>*</xsl:text>
+                        <xsl:value-of select=".//folia:feat[@subset='problem']/@class" />
+                    </xsl:if>
+                    <xsl:if test=".//folia:feat[@subset='pos']">
+                        <xsl:text>*</xsl:text>
+                        <xsl:value-of select=".//folia:feat[@subset='pos']/@class" />
+                    </xsl:if>
+                </span>
+                <xsl:text> </xsl:text>
+                <span class="attrvalue">
+                    <xsl:for-each select=".//folia:original/folia:w/folia:t">
+                        <em><xsl:value-of select="." /></em><xsl:text> </xsl:text>
+                    </xsl:for-each>
+                </span><br />
+            </xsl:if>
         </xsl:for-each>
     </xsl:for-each>
 
