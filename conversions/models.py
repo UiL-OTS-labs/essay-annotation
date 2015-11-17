@@ -27,17 +27,17 @@ class PartAnnotation():
             self.is_correction = False
 
     def split_annotation(self, annotation):
+        """
+        Splits an annotation into a list of annotations.
+        """
+        self.annotations = []
         if annotation:
-            a = annotation.split('*')
-            self.annotation = annotation
-            self.unit = a[0]
-            self.problem = a[1] if len(a) >= 2 else None
-            self.pos = a[2] if len(a) == 3 else None
-        else:
-            self.annotation = None
-            self.unit = None
-            self.problem = None
-            self.pos = None
+            for a in annotation.split('+'):
+                a_part = a.split('*')
+                unit = a_part[0]
+                problem = a_part[1] if len(a_part) >= 2 else None
+                pos = a_part[2] if len(a_part) == 3 else None
+                self.annotations.append({'unit': unit, 'problem': problem, 'pos': pos})
 
     def add_child(self, child, start, end):
         self.children.append(child)
@@ -64,19 +64,20 @@ class PartAnnotation():
             for token in tokenize(self.original):
                 w = sentence.add(folia.Word, token)
                 words.append(w)
-            role = MySemanticRole(doc, *words, cls=self.unit)
-            # TODO: not yet allowed
-            self.add_features(role)
+            for a in self.annotations:
+                role = MySemanticRole(doc, *words, cls=a['unit'])
+                # TODO: not yet allowed
+                self.add_features(role, a)
         return words, role
 
-    def add_features(self, obj):
+    def add_features(self, obj, annotation):
         """
         Optiionally adds features to the given FoLiA object.
         """
-        if self.problem:
-            obj.add(folia.Feature, subset='problem', cls=self.problem)
-        if self.pos:
-            obj.add(folia.Feature, subset='pos', cls=self.pos)
+        if annotation['problem']:
+            obj.add(folia.Feature, subset='problem', cls=annotation['problem'])
+        if annotation['pos']:
+            obj.add(folia.Feature, subset='pos', cls=annotation['pos'])
 
     def add_folia_correction(self, doc, sentence):
         """
@@ -91,10 +92,15 @@ class PartAnnotation():
         # If we're dealing with single words (e.g. spelling errors), create the correction directly on the word.
         if len(original_tokens) == 1 and len(edited_tokens) == 1:
             w = sentence.add(folia.Word)
+            words.append(w)
             n = folia.New(doc, self.edited)
             o = folia.Original(doc, self.original)
-            correction = w.add(folia.Correction, n, o, cls=self.unit, generate_id_in=sentence)
-            words.append(w)
+            for i, a in enumerate(self.annotations):
+                if i == 0: 
+                    correction = w.add(folia.Correction, n, o, cls=a['unit'], generate_id_in=sentence)
+                else:
+                    correction = o.add(folia.Correction, n, o.copy(doc), cls=a['unit'], generate_id_in=sentence)
+                self.add_features(correction, a)
         # We are dealing with more than one word, or an insertion/deletion. Create word elements for each token.
         else:
             n = folia.New(doc)
@@ -104,10 +110,12 @@ class PartAnnotation():
                 words.append(word)
             for w in original_tokens:
                 o.add(folia.Word, w, generate_id_in=sentence)
-            correction = sentence.add(folia.Correction, n, o, cls=self.unit, generate_id_in=sentence)
-
-        # Add the problem and/or pos feature.
-        self.add_features(correction)
+            for i, a in enumerate(self.annotations):
+                if i == 0: 
+                    correction = sentence.add(folia.Correction, n, o, cls=a['unit'], generate_id_in=sentence)
+                else:
+                    correction = o.add(folia.Correction, n, o.copy(doc), cls=a['unit'], generate_id_in=sentence)
+                self.add_features(correction, a)
 
         return words
 
@@ -142,23 +150,21 @@ class PartAnnotation():
             word = sentence.add(folia.Word, token)
             all_words.append(word)
 
-        # Special case for empty sentences
+        # Special case for empty sentences (TODO: deal with this on paragraph level?)
         if not all_words:
             word = sentence.add(folia.Word, '<LEEG>')
             all_words.append(word)
 
-        # If this node has a unit, add a role.
-        if self.unit:
-            role = MySemanticRole(doc, *all_words, cls=self.unit)
-            self.add_features(role)
+        # If this node has annotations, add roles.
+        for a in self.annotations:
+            role = MySemanticRole(doc, *all_words, cls=a['unit'])
+            self.add_features(role, a)
             all_roles.append(role)
 
         return all_words, all_roles
 
     def __str__(self):
-        result = '{} <{}*{}>'.format(self.original, self.unit, self.problem)
-        #if not self.parent:
-        #    result += '\nEdited: ' + self.edited
+        result = '{} <{}>'.format(self.original, self.annotations)
         for c in self.children:
             result += '\n\t' + str(c)
         return result

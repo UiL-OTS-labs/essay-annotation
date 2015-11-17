@@ -11,8 +11,8 @@ CORRECTIONS_SET = 'https://raw.githubusercontent.com/UiL-OTS-labs/essay-annotati
 SEMANTICROLES_SET = 'https://raw.githubusercontent.com/UiL-OTS-labs/essay-annotation/master/config/semanticroles.foliaset.xml'
 
 HAS_INNER = re.compile(r'\[[^\]]*\[')
-GREEDY_MATCH_TAG = re.compile(r'\[(.*)\](\w[\*\w]*)')
-LAZY_MATCH_TAG = re.compile(r'\[(.*?)\](\w[\*\w]*)')
+GREEDY_MATCH_TAG = re.compile(r'\[(.*)\](\w[\*\+\w]*)')
+LAZY_MATCH_TAG = re.compile(r'\[(.*?)\](\w[\*\+\w]*)')
 
 
 def match_outer(s, pa=None):
