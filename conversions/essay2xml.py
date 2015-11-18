@@ -91,25 +91,36 @@ def start_folia_document(filename):
     return doc
 
 
-def process_line(line, doc):
+def process_line(line, doc, pnum=0):
     """
     Processes a single line from the plain-text annotation and converts that to a FoLiA Sentence.
     """
-    # Create a new sentence in the document
-    sentence = doc.paragraphs().next().add(folia.Sentence)
-
     # Strip the line and create a PartAnnotation structure
     line = line.strip()
     pa = extract_corrections(line)
 
     # Convert the PartAnnotation structure to a FoLiA Sentence
-    _, roles = pa.to_folia_sentence(doc, sentence)
+    roles = []
+    if not pa.original and not pa.edited:
+        # TODO: better way to select folia.Text from folia.Document?
+        paragraph = doc.select(folia.Text).next().add(folia.Paragraph)
+        for annotation in pa.annotations:
+            pass
+            # TODO: not allowed to add features on paragraph level
+            #pa.add_features(paragraph, annotation)
+        pnum += 1
+    else:
+        # Create a new sentence in the current last paragraph
+        sentence = doc.paragraphs(pnum).add(folia.Sentence)
+        _, roles = pa.to_folia_sentence(doc, sentence)
 
-    # Add all collected roles to the SemanticRolesLayer
-    if roles:
-        layer = sentence.add(folia.SemanticRolesLayer)
-        for role in roles:
-            layer.add(role)
+        # Add all collected roles to the SemanticRolesLayer
+        if roles:
+            layer = sentence.add(folia.SemanticRolesLayer)
+            for role in roles:
+                layer.add(role)
+
+    return pnum
 
 
 def process_file(dirname, filename):
@@ -119,9 +130,10 @@ def process_file(dirname, filename):
     with codecs.open(filename, 'rb') as f:
         base = os.path.splitext(os.path.basename(filename))[0]
         doc = start_folia_document(base)
+        pnum = 0
         for n, line in enumerate(f):
             if count_brackets(line):
-                process_line(line, doc)
+                pnum = process_line(line, doc, pnum)
             else:
                 print 'Number of brackets does not match on line', n
         doc.save(dirname + '/out/' + base + '.xml')
