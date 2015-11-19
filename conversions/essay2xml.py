@@ -9,6 +9,7 @@ from models import PartAnnotation
 
 CORRECTIONS_SET = 'https://raw.githubusercontent.com/UiL-OTS-labs/essay-annotation/master/config/corrections.foliaset.xml'
 SEMANTICROLES_SET = 'https://raw.githubusercontent.com/UiL-OTS-labs/essay-annotation/master/config/semanticroles.foliaset.xml'
+WHITESPACE_SET = 'https://raw.githubusercontent.com/UiL-OTS-labs/essay-annotation/master/config/whitespace.foliaset.xml'
 
 HAS_INNER = re.compile(r'\[[^\]]*\[')
 GREEDY_MATCH_TAG = re.compile(r'\[(.*)\](\w[\*\+\w]*)')
@@ -85,6 +86,7 @@ def start_folia_document(filename):
     doc = folia.Document(id=filename)
     doc.declare(folia.Correction, CORRECTIONS_SET, annotatortype=folia.AnnotatorType.MANUAL)
     doc.declare(folia.SemanticRole, SEMANTICROLES_SET, annotatortype=folia.AnnotatorType.MANUAL)
+    doc.declare(folia.Whitespace, WHITESPACE_SET, annotatortype=folia.AnnotatorType.MANUAL)
     doc.metadata = folia.NativeMetaData(score='88', time='3', words='110')  # TODO: set this correctly
     text = doc.append(folia.Text)
     text.add(folia.Paragraph)
@@ -95,15 +97,20 @@ def process_line(line, doc):
     """
     Processes a single line from the plain-text annotation and converts that to a FoLiA Sentence.
     """
-    # Create a new sentence in the document
-    sentence = doc.paragraphs().next().add(folia.Sentence)
-
     # Strip the line and create a PartAnnotation structure
     line = line.strip()
     pa = extract_corrections(line)
 
     # Convert the PartAnnotation structure to a FoLiA Sentence
-    _, roles = pa.to_folia_sentence(doc, sentence)
+    current_paragraph = doc.paragraphs().next()
+    roles = []
+    if not pa.original and not pa.edited:
+        whitespace = pa.to_folia_whitespace(doc)
+        current_paragraph.add(whitespace)
+    # Create a new sentence in the document
+    else:
+        sentence = current_paragraph.add(folia.Sentence)
+        _, roles = pa.to_folia_sentence(doc, sentence)
 
     # Add all collected roles to the SemanticRolesLayer
     if roles:

@@ -163,6 +163,13 @@ class PartAnnotation():
 
         return all_words, all_roles
 
+    def to_folia_whitespace(self, doc):
+        # TODO: more than one annotation not allowed? 
+        a = self.annotations[0]
+        whitespace = folia.Whitespace(doc, cls=a['unit'])
+        self.add_features(whitespace, a)
+        return whitespace
+
     def __str__(self):
         result = '{} <{}>'.format(self.original, self.annotations)
         for c in self.children:
