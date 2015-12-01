@@ -1,4 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <set xml:id="semanticroles" type="closed" xmlns="http://ilk.uvt.nl/folia">
+    <class xml:id="PD" label="Plaats en datum" />
+    <class xml:id="AH" label="Aanhef" />
+    <class xml:id="OR" label="Ontbrekende regelsprong na aanhef of voor groet" />
     <class xml:id="AL" label="Aanleiding voor tekst" />
+    <class xml:id="WZ" label="Welkom-zin" />
+    <class xml:id="VS" label="Voorstellen van schrijver" />
+    <class xml:id="AK" label="Aankondiging inhoud" />
+    <class xml:id="IVL" label="Inspelen op voorkennis lezer" />
+    <class xml:id="TB" label="Terugblik inhoud" />
+    <class xml:id="AFZ" label="Afsluitzin" />
+    <class xml:id="G" label="Groet" />
+    <class xml:id="VMT" label="Verbale markering topicovergang" />
+    <class xml:id="VMS" label="Verbale markering subtopicovergang" />
+    <class xml:id="WT" label="Witregel bij topicovergang" />
+    <class xml:id="OT" label="Verbaal niet gemarkeerde topicovergang" />
+    <subset xml:id="problem" class="closed">
+        <class xml:id="O" label="Ontbreekt" />
+        <class xml:id="I" label="Incorrect" />
+        <class xml:id="ND" label="Niet duidelijk" />
+        <class xml:id="NP" label="Niet passend in genre" />
+        <class xml:id="V" label="Volgorde verkeerd" />
+        <class xml:id="ON" label="Onvolledig" />
+    </subset>
 </set>

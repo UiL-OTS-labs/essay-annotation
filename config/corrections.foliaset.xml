@@ -1,17 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <set xml:id="corrections" type="closed" xmlns="http://ilk.uvt.nl/folia">
-    <class xml:id="FA" label="Flexie / affix" />
-    <class xml:id="S" label="Symbool" />
     <class xml:id="SPA" label="Spatie" />
+    <class xml:id="AF" label="Afbreking" />
+    <class xml:id="HN" label="Hoofdletter naam" />
+    <class xml:id="S" label="Symbool" />
     <class xml:id="SPE" label="Spelling" />
+    <class xml:id="FA" label="Flexie / affix" />
     <class xml:id="WD" label="Woorddeel" />
     <class xml:id="W" label="Woord" />
+    <class xml:id="WG" label="Woordgroep" />
+    <class xml:id="Z" label="(Deel)zin" />
+    <class xml:id="MV" label="Markering verband tussen (deel)zinnen" />
+    <class xml:id="V" label="Verband tussen (deel)zinnen" />
+    <class xml:id="RS" label="Regelsprong" />
+    <class xml:id="L" label="Leesteken" />
+    <class xml:id="HZ" label="Hoofdletter nieuwe zin" />
+    <class xml:id="R" label="Referent" />
+    <class xml:id="I" label="Informatie" />
     <subset xml:id="problem" class="closed">
         <class xml:id="O" label="Ontbreekt" />
         <class xml:id="W" label="Moet weg" />
         <class xml:id="I" label="Incorrect" />
         <class xml:id="V" label="Volgorde verkeerd" />
         <class xml:id="ND" label="Niet duidelijk" />
+        <class xml:id="TND" label="Terugverwijzing niet duidelijk" />
         <class xml:id="NP" label="Niet passend in genre" />
         <class xml:id="GP" label="Gebrek aan parallellie" />
         <class xml:id="SH" label="Storende herhaling" />
