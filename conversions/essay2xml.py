@@ -105,7 +105,7 @@ def process_line(line, doc):
     current_paragraph = doc.paragraphs().next()
     roles = []
     if not pa.original and not pa.edited:
-        whitespace = pa.to_folia_whitespace(doc)
+        whitespace = pa.to_folia_whitespace(doc, current_paragraph)
         current_paragraph.add(whitespace)
     # Create a new sentence in the document
     else:

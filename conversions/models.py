@@ -18,8 +18,8 @@ class PartAnnotation():
     def split_part(self, part):
         if '/' in part and '[' not in part:
             parts = part.split('/')
-            self.original = parts[0]
-            self.edited = parts[1]
+            self.original = parts[0] if parts[0] else u'\u221A'
+            self.edited = parts[1] if parts[1] else u'\u2205'
             self.is_correction = True
         else:
             self.original = part
@@ -96,10 +96,12 @@ class PartAnnotation():
             n = folia.New(doc, self.edited)
             o = folia.Original(doc, self.original)
             for i, a in enumerate(self.annotations):
-                if i == 0: 
+                if i == 0:
                     correction = w.add(folia.Correction, n, o, cls=a['unit'], generate_id_in=sentence)
                 else:
-                    correction = o.add(folia.Correction, n, o.copy(doc), cls=a['unit'], generate_id_in=sentence)
+                    n_new = folia.New(doc, self.edited)
+                    o_new = folia.Original(doc, self.original)
+                    correction = o.add(folia.Correction, n_new, o_new, cls=a['unit'], generate_id_in=sentence)
                 self.add_features(correction, a)
         # We are dealing with more than one word, or an insertion/deletion. Create word elements for each token.
         else:
@@ -111,10 +113,16 @@ class PartAnnotation():
             for w in original_tokens:
                 o.add(folia.Word, w, generate_id_in=sentence)
             for i, a in enumerate(self.annotations):
-                if i == 0: 
+                if i == 0:
                     correction = sentence.add(folia.Correction, n, o, cls=a['unit'], generate_id_in=sentence)
                 else:
-                    correction = o.add(folia.Correction, n, o.copy(doc), cls=a['unit'], generate_id_in=sentence)
+                    n_new = folia.New(doc)
+                    o_new = folia.Original(doc)
+                    for w in edited_tokens:
+                        n_new.add(folia.Word, w, generate_id_in=sentence)
+                    for w in original_tokens:
+                        o_new.add(folia.Word, w, generate_id_in=sentence)
+                    correction = o.add(folia.Correction, n_new, o_new, cls=a['unit'], generate_id_in=sentence)
                 self.add_features(correction, a)
 
         return words
@@ -163,10 +171,10 @@ class PartAnnotation():
 
         return all_words, all_roles
 
-    def to_folia_whitespace(self, doc):
-        # TODO: more than one annotation not allowed? 
+    def to_folia_whitespace(self, doc, paragraph):
+        # TODO: more than one annotation not allowed?
         a = self.annotations[0]
-        whitespace = folia.Whitespace(doc, cls=a['unit'])
+        whitespace = folia.Whitespace(doc, cls=a['unit'], generate_id_in=paragraph)
         self.add_features(whitespace, a)
         return whitespace
 

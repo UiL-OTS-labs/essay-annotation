@@ -531,7 +531,7 @@
                 </xsl:for-each></span><br />
             </xsl:if>
             <xsl:if test=".//folia:correction/folia:original/folia:t">
-                <span class="attrlabel">Original text</span>
+                <span class="attrlabel">Problem text</span>
                 <span class="spanclass">
                     <xsl:value-of select=".//folia:correction/@class" />
                     <xsl:if test=".//folia:feat[@subset='problem']">
@@ -569,6 +569,19 @@
                     </xsl:for-each>
                 </span><br />
             </xsl:for-each>
+        </xsl:if>
+        <xsl:if test=".//folia:whitespace">
+            <span class="spanclass">
+                <xsl:value-of select=".//folia:correction/@class" />
+                <xsl:if test=".//folia:feat[@subset='problem']">
+                    <xsl:text>*</xsl:text>
+                    <xsl:value-of select=".//folia:feat[@subset='problem']/@class" />
+                </xsl:if>
+                <xsl:if test=".//folia:feat[@subset='pos']">
+                    <xsl:text>*</xsl:text>
+                    <xsl:value-of select=".//folia:feat[@subset='pos']/@class" />
+                </xsl:if>
+            </span>
         </xsl:if>
         <span class="spanannotations">
             <xsl:call-template name="spanannotations">
@@ -627,7 +640,7 @@
         <xsl:for-each select="folia:semroles">
             <xsl:for-each select="folia:semrole">
                 <xsl:if test=".//folia:wref[@id=$id]">
-                    <span class="attrlabel">Linguistic Unit</span>
+                    <span class="attrlabel">Coded text passage</span>
                     <span class="spanclass">
                         <xsl:value-of select="@class" />
                         <xsl:if test=".//folia:feat[@subset='problem']">
@@ -652,7 +665,59 @@
     <xsl:for-each select="$ancestors">
         <xsl:for-each select="folia:correction">
             <xsl:if test=".//folia:w[@xml:id=$id]">
-                <span class="attrlabel">Original text</span>
+                <span class="attrlabel">Problem text</span>
+                <span class="spanclass">
+                    <xsl:value-of select="@class" />
+                    <xsl:if test=".//folia:feat[@subset='problem']">
+                        <xsl:text>*</xsl:text>
+                        <xsl:value-of select=".//folia:feat[@subset='problem']/@class" />
+                    </xsl:if>
+                    <xsl:if test=".//folia:feat[@subset='pos']">
+                        <xsl:text>*</xsl:text>
+                        <xsl:value-of select=".//folia:feat[@subset='pos']/@class" />
+                    </xsl:if>
+                    <!-- Allow for embedded corrections -->
+                    <xsl:if test=".//folia:correction">
+                        <xsl:text> </xsl:text>
+                        <xsl:value-of select=".//folia:correction/@class" />
+                        <xsl:if test=".//folia:correction/folia:feat[@subset='problem']">
+                            <xsl:text>*</xsl:text>
+                            <xsl:value-of select=".//folia:correction/folia:feat[@subset='problem']/@class" />
+                        </xsl:if>
+                        <xsl:if test=".//folia:feat[@subset='pos']">
+                            <xsl:text>*</xsl:text>
+                            <xsl:value-of select=".//folia:correction/folia:feat[@subset='pos']/@class" />
+                        </xsl:if>
+                    </xsl:if>
+                </span>
+                <xsl:text> </xsl:text>
+                <span class="attrvalue">
+                    <xsl:for-each select="./folia:original/folia:w/folia:t">
+                        <em><xsl:value-of select="." /></em><xsl:text> </xsl:text>
+                    </xsl:for-each>
+                </span><br />
+            </xsl:if>
+        </xsl:for-each>
+    </xsl:for-each>
+
+    <xsl:for-each select="$ancestors">
+        <xsl:for-each select="folia:syntax">
+            <span class="attrlabel">Syntax</span>
+            <span class="attrvalue">
+                <xsl:call-template name="su2svg">
+                    <xsl:with-param name="id" select="$id" />
+                </xsl:call-template>
+            </span><br/>
+        </xsl:for-each>
+    </xsl:for-each>
+</xsl:template>
+
+<xsl:template match="folia:whitespace">
+    <span class="s">
+        <span class="word sh">&#8709;
+            <span class="attributes">
+                <span class="attrlabel">ID</span><span class="attrvalue"><xsl:value-of select="@xml:id" /></span><br />
+                <span class="attrlabel">Coded text passage</span>
                 <span class="spanclass">
                     <xsl:value-of select="@class" />
                     <xsl:if test=".//folia:feat[@subset='problem']">
@@ -664,30 +729,9 @@
                         <xsl:value-of select=".//folia:feat[@subset='pos']/@class" />
                     </xsl:if>
                 </span>
-                <xsl:text> </xsl:text>
-                <span class="attrvalue">
-                    <xsl:for-each select=".//folia:original/folia:w/folia:t">
-                        <em><xsl:value-of select="." /></em><xsl:text> </xsl:text>
-                    </xsl:for-each>
-                </span><br />
-            </xsl:if>
-        </xsl:for-each>
-    </xsl:for-each>
-
-    <xsl:for-each select="$ancestors">
-    <xsl:for-each select="folia:syntax">
-        <span class="attrlabel">Syntax</span>
-        <span class="attrvalue">
-            <xsl:call-template name="su2svg">
-                <xsl:with-param name="id" select="$id" />
-            </xsl:call-template>
-        </span><br/>
-    </xsl:for-each>
-    </xsl:for-each>
-</xsl:template>
-
-<xsl:template match="folia:whitespace">
- <br /><br />
+            </span>
+        </span>
+    </span>
 </xsl:template>
 
 <xsl:template match="folia:br">
