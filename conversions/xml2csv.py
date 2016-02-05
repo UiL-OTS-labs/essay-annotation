@@ -30,14 +30,17 @@ def get_feature(element, subset):
 def get_corrections(element, doc_id, sentence_nr):
     """
     Retrieves all Corrections for an element.
+    As Correction can have multiple Originals, use this as the base and return one line per Original.
     """
     result = []
-    for correction in element.select(folia.Correction, recursive=False):
-        problem = get_feature(correction, 'problem')
-        pos = get_feature(correction, 'pos')
-        original = remove_spaces(correction.text(correctionhandling=folia.CorrectionHandling.ORIGINAL))
-        corrected = remove_spaces(correction.text(correctionhandling=folia.CorrectionHandling.CURRENT))
-        result.append([doc_id, sentence_nr, original, corrected, correction.cls, problem, pos])
+    for c in element.select(folia.Correction, recursive=False):
+        for original in c.select(folia.Original, ignore=False):
+            correction = original.ancestor()
+            problem = get_feature(correction, 'problem')
+            pos = get_feature(correction, 'pos')
+            original = remove_spaces(correction.text(correctionhandling=folia.CorrectionHandling.ORIGINAL))
+            corrected = remove_spaces(correction.text(correctionhandling=folia.CorrectionHandling.CURRENT))
+            result.append([doc_id, sentence_nr, original, corrected, correction.cls, problem, pos])
     return result
 
 
