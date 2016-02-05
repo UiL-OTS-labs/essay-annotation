@@ -30,7 +30,7 @@ def match_outer(s, pa=None):
             p_child = PartAnnotation(sentence, annotation)
             pa.add_child(p_child, match.start(0), match.end(0))
             pa = p_child
-        extract_corrections(sentence, pa)
+        extract_annotations(sentence, pa)
     else:
         print 'not found?'
     return pa
@@ -56,7 +56,10 @@ def match_inner(s, pa=None):
     return pa
 
 
-def extract_corrections(s, pa=None):
+def extract_annotations(s, pa=None):
+    """
+    Checks if there's a nested structure and relays to the correct handlers.
+    """
     if is_nested(s):
         pa = match_outer(s, pa)
     else:
@@ -99,7 +102,7 @@ def process_line(line, doc):
     """
     # Strip the line and create a PartAnnotation structure
     line = line.strip()
-    pa = extract_corrections(line)
+    pa = extract_annotations(line)
 
     # Convert the PartAnnotation structure to a FoLiA Sentence
     current_paragraph = doc.paragraphs().next()

@@ -2,10 +2,6 @@ from pynlpl.formats import folia
 from pynlpl.textprocessors import tokenize
 
 
-class MySemanticRole(folia.SemanticRole):
-    ACCEPTED_DATA = folia.SemanticRole.ACCEPTED_DATA + (folia.Feature,)
-
-
 class PartAnnotation():
     def __init__(self, part, annotation):
         self.split_part(part)
@@ -65,8 +61,7 @@ class PartAnnotation():
                 w = sentence.add(folia.Word, token)
                 words.append(w)
             for a in self.annotations:
-                role = MySemanticRole(doc, *words, cls=a['unit'])
-                # TODO: not yet allowed
+                role = folia.SemanticRole(doc, *words, cls=a['unit'])
                 self.add_features(role, a)
         return words, role
 
@@ -165,7 +160,7 @@ class PartAnnotation():
 
         # If this node has annotations, add roles.
         for a in self.annotations:
-            role = MySemanticRole(doc, *all_words, cls=a['unit'])
+            role = folia.SemanticRole(doc, *all_words, cls=a['unit'])
             self.add_features(role, a)
             all_roles.append(role)
 
