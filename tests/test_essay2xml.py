@@ -4,6 +4,7 @@ from pynlpl.formats import folia
 
 from conversions.essay2xml import is_nested, count_brackets, start_folia_document, process_line
 
+
 class TestEssay2XML(unittest.TestCase):
     def test_is_nested(self):
         self.assertFalse(is_nested('[]'))
