@@ -11,74 +11,69 @@ CORRECTIONS_SET = 'https://raw.githubusercontent.com/UiL-OTS-labs/essay-annotati
 SEMANTICROLES_SET = 'https://raw.githubusercontent.com/UiL-OTS-labs/essay-annotation/master/config/semanticroles.foliaset.xml'
 WHITESPACE_SET = 'https://raw.githubusercontent.com/UiL-OTS-labs/essay-annotation/master/config/whitespace.foliaset.xml'
 
-HAS_INNER = re.compile(r'\[[^\]]*\[')
-GREEDY_MATCH_TAG = re.compile(r'\[(.*)\](\w[\*\+\w]*)')
-LAZY_MATCH_TAG = re.compile(r'\[(.*?)\](\w[\*\+\w]*)')
-
-
-def match_outer(s, pa=None):
-    """
-    Matches the outer annotation (greedy) in a nested annotation.
-    """
-    match = GREEDY_MATCH_TAG.search(s)
-    if match:
-        sentence = match.group(1)
-        annotation = match.group(2)
-        if not pa:
-            pa = PartAnnotation(sentence, annotation)
-        else:
-            p_child = PartAnnotation(sentence, annotation)
-            pa.add_child(p_child, match.start(0), match.end(0))
-            pa = p_child
-        extract_annotations(sentence, pa)
-    else:
-        print 'not found?'
-    return pa
-
-
-def match_inner(s, pa=None):
-    """
-    Matches all inner annotations (lazy) in a non-nested annotation.
-    """
-    if not pa:
-        pa = PartAnnotation(s, None)
-
-    matches = LAZY_MATCH_TAG.finditer(s)
-    for match in matches:
-        sentence = match.group(1)
-        annotation = match.group(2)
-        # If we match the whole sentence, create a new annotation
-        if match.group(0) == s:
-            pa = PartAnnotation(sentence, annotation)
-        # Otherwise, add the matches to the existing annotation
-        else:
-            pa.add_child(PartAnnotation(sentence, annotation), match.start(0), match.end(0))
-    return pa
+TAG = re.compile(r'(\w[\*\+\w]*)')
 
 
 def extract_annotations(s, pa=None):
     """
-    Checks if there's a nested structure and relays to the correct handlers.
+    Extracts all annotations from a (plain text) sentence.
     """
-    if is_nested(s):
-        pa = match_outer(s, pa)
-    else:
-        pa = match_inner(s, pa)
+    if not pa:
+        pa = PartAnnotation(s, None)
+
+    for start, end in get_matching_brackets(s):
+        sentence = s[start+1:end]
+        post_sentence = s[end+1:]
+
+        annotation_match = TAG.match(post_sentence)
+        annotation = annotation_match.group(1)
+
+        p_child = PartAnnotation(sentence, annotation)
+        pa.add_child(p_child, start, end + annotation_match.end(1) + 1)
+
+        # Recurse into the annotation to find other annotations
+        p_child = extract_annotations(sentence, p_child)
+
     return pa
 
 
-def is_nested(s):
+def get_matching_brackets(s):
     """
-    Checks whether the string s has a nested structure.
+    Finds the outer annotations in a sentence.
     """
-    return HAS_INNER.search(s)
+    matches = []
+    open_brackets = 0
+    for n, c in enumerate(s):
+        if c == '[':
+            open_brackets += 1
+            if open_brackets == 1:
+                start = n
+        if c == ']':
+            open_brackets -= 1
+            if open_brackets == 0:
+                end = n
+                matches.append((start, end))
+    return matches
 
 
-def count_brackets(line):
+def count_brackets(n, line):
     """
     Matches the number of brackets on a line.
     """
-    return line.count('[') == line.count(']')
+    if line.count('[') != line.count(']'):
+        print 'Number of brackets does not match on line', n
+        return False
+    return True
+
+
+def check_no_annotation(n, line):
+    """
+    Check if there's a bracket without annotation.
+    """
+    if '] ' in line:
+        print 'No annotation specified on line', n
+        return False
+    return True
 
 
 def start_folia_document(filename):
@@ -127,17 +122,20 @@ def process_file(dirname, filename):
     Processes a plain-text annotation file and converts that to FoLiA XML.
     """
     with codecs.open(filename, 'rb') as f:
+        print 'Processing', filename
         base = os.path.splitext(os.path.basename(filename))[0]
         doc = start_folia_document(base)
         for n, line in enumerate(f):
-            if count_brackets(line):
-                process_line(line, doc)
-            else:
-                print 'Number of brackets does not match on line', n
+            count_brackets(n, line)
+            check_no_annotation(n, line)
+            process_line(line, doc)
         doc.save(dirname + '/out/' + base + '.xml')
 
 
 def process_folder(dirname):
+    """
+    Processes a whole folder of plain-text annotation files.
+    """
     for filename in glob.glob(dirname + '/*.txt'):
         process_file(dirname, filename)
 

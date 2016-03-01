@@ -153,11 +153,6 @@ class PartAnnotation():
             word = sentence.add(folia.Word, token)
             all_words.append(word)
 
-        # Special case for empty sentences (TODO: deal with this on paragraph level?)
-        if not all_words:
-            word = sentence.add(folia.Word, '<LEEG>')
-            all_words.append(word)
-
         # If this node has annotations, add roles.
         for a in self.annotations:
             role = folia.SemanticRole(doc, *all_words, cls=a['unit'])
@@ -167,10 +162,12 @@ class PartAnnotation():
         return all_words, all_roles
 
     def to_folia_whitespace(self, doc, paragraph):
-        # TODO: more than one annotation not allowed?
-        a = self.annotations[0]
-        whitespace = folia.Whitespace(doc, cls=a['unit'], generate_id_in=paragraph)
-        self.add_features(whitespace, a)
+        whitespace = folia.Whitespace(doc, generate_id_in=paragraph)
+        if self.annotations:
+            # TODO: more than one annotation not allowed?
+            a = self.annotations[0]
+            whitespace.cls = a['unit']
+            self.add_features(whitespace, a)
         return whitespace
 
     def __str__(self):
