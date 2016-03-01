@@ -14,6 +14,10 @@ WHITESPACE_SET = 'https://raw.githubusercontent.com/UiL-OTS-labs/essay-annotatio
 TAG = re.compile(r'(\w[\*\+\w]*)')
 
 
+class ParseException(Exception):
+    pass
+
+
 def extract_annotations(s, pa=None):
     """
     Extracts all annotations from a (plain text) sentence.
@@ -61,9 +65,8 @@ def count_brackets(n, line):
     Matches the number of brackets on a line.
     """
     if line.count('[') != line.count(']'):
-        print 'Number of brackets does not match on line', n
-        return False
-    return True
+        msg = 'Number of brackets does not match on line {}'.format(n)
+        raise ParseException(msg)
 
 
 def check_no_annotation(n, line):
@@ -71,9 +74,8 @@ def check_no_annotation(n, line):
     Check if there's a bracket without annotation.
     """
     if '] ' in line:
-        print 'No annotation specified on line', n
-        return False
-    return True
+        msg = 'No annotation specified on line {}'.format(n)
+        raise ParseException(msg)
 
 
 def start_folia_document(filename):
@@ -125,11 +127,23 @@ def process_file(dirname, filename):
         print 'Processing', filename
         base = os.path.splitext(os.path.basename(filename))[0]
         doc = start_folia_document(base)
+        parsing_failed = False
+        errors = []
         for n, line in enumerate(f):
-            count_brackets(n, line)
-            check_no_annotation(n, line)
-            process_line(line, doc)
-        doc.save(dirname + '/out/' + base + '.xml')
+            try:
+                count_brackets(n, line)
+                check_no_annotation(n, line)
+                process_line(line, doc)
+            except ParseException as e:
+                parsing_failed = True
+                errors.append(e)
+
+        if not parsing_failed:
+            doc.save(dirname + '/out/' + base + '.xml')
+        else:
+            print 'Parsing failed! Errors:'
+            for e in errors:
+                print '-', e
 
 
 def process_folder(dirname):

@@ -4,13 +4,13 @@ import unittest
 
 from pynlpl.formats import folia
 
-from conversions.essay2xml import count_brackets, start_folia_document, process_line, get_matching_brackets
+from conversions.essay2xml import ParseException, count_brackets, start_folia_document, process_line, get_matching_brackets
 
 
 class TestEssay2XML(unittest.TestCase):
     def test_count_brackets(self):
-        self.assertFalse(count_brackets(0, '[]]'))
-        self.assertTrue(count_brackets(0, '[[]]'))
+        with self.assertRaises(ParseException):
+            count_brackets(0, '[]]')
 
     def test_corrections(self):
         doc = start_folia_document('test')
