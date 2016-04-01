@@ -30,6 +30,8 @@ def extract_annotations(s, pa=None):
         post_sentence = s[end+1:]
 
         annotation_match = TAG.match(post_sentence)
+        if not annotation_match:
+            raise ParseException('Wrong annotation format: {}'.format(post_sentence))
         annotation = annotation_match.group(1)
 
         p_child = PartAnnotation(sentence, annotation)
@@ -65,7 +67,7 @@ def count_brackets(n, line):
     Matches the number of brackets on a line.
     """
     if line.count('[') != line.count(']'):
-        msg = 'Number of brackets does not match on line {}'.format(n)
+        msg = 'Number of brackets does not match on line {} ({})'.format(n, line.replace('\n', ''))
         raise ParseException(msg)
 
 
@@ -74,7 +76,7 @@ def check_no_annotation(n, line):
     Check if there's a bracket without annotation.
     """
     if '] ' in line:
-        msg = 'No annotation specified on line {}'.format(n)
+        msg = 'No annotation specified on line {} ({})'.format(n, line.replace('\n', ''))
         raise ParseException(msg)
 
 
@@ -124,7 +126,7 @@ def process_file(dirname, filename):
     Processes a plain-text annotation file and converts that to FoLiA XML.
     """
     with codecs.open(filename, 'rb') as f:
-        print 'Processing', filename
+        #print 'Processing', filename
         base = os.path.splitext(os.path.basename(filename))[0]
         doc = start_folia_document(base)
         parsing_failed = False
@@ -141,7 +143,7 @@ def process_file(dirname, filename):
         if not parsing_failed:
             doc.save(dirname + '/out/' + base + '.xml')
         else:
-            print 'Parsing failed! Errors:'
+            print 'Parsing failed for {}! Errors:'.format(filename)
             for e in errors:
                 print '-', e
 
