@@ -4,7 +4,7 @@ from docx import Document
 
 document = Document('../data/test_errors.docx')
 for table in document.tables:
-    filename = table.rows[0].cells[0].text.split(' ')[0]
+    filename = table.rows[0].cells[0].text.strip().split(' ')[0]
     with codecs.open('../data/' + filename + '.txt', 'wb') as f:
         for i, row in enumerate(table.rows):
             for j, cell in enumerate(row.cells):
