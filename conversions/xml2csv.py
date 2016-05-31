@@ -44,6 +44,13 @@ def get_corrections(element, doc_id, sentence_nr):
     return result
 
 
+def get_text_from_semrole(semrole):
+    try:
+        return remove_spaces(semrole.text())
+    except folia.NoSuchText:
+        return ''
+
+
 def remove_spaces(s):
     """
     Removes all spaces before punctuation.
@@ -71,7 +78,7 @@ def process_file(csv_writer, filename):
         for semrole in sentence.select(folia.SemanticRole):
             problem = get_feature(semrole, 'problem')
             pos = get_feature(semrole, 'pos')
-            csv_writer.writerow([doc.id, sentence_nr, remove_spaces(semrole.text()), '', semrole.cls, problem, pos])
+            csv_writer.writerow([doc.id, sentence_nr, get_text_from_semrole(semrole), '', semrole.cls, problem, pos])
 
 
 def process_folder(folder):
@@ -87,7 +94,7 @@ def process_folder(folder):
                              'eenheid', 'probleem', 'woordsoort'])
 
         # Loop over all .xml-files in the given folder
-        for filename in glob.glob(os.path.join(folder, 'T1_*.xml')):
+        for filename in glob.glob(os.path.join(folder, '*.xml')):
             print 'Processing ', filename
             process_file(csv_writer, filename)
 
