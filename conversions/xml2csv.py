@@ -87,7 +87,7 @@ def process_folder(folder):
                              'eenheid', 'probleem', 'woordsoort'])
 
         # Loop over all .xml-files in the given folder
-        for filename in glob.glob(os.path.join(folder, 'T1_VOBXR*.xml')):
+        for filename in glob.glob(os.path.join(folder, 'T1_*.xml')):
             print 'Processing ', filename
             process_file(csv_writer, filename)
 

@@ -18,7 +18,7 @@ class ParseException(Exception):
     pass
 
 
-def extract_annotations(s, pa=None):
+def extract_annotations(n, s, pa=None):
     """
     Extracts all annotations from a (plain text) sentence.
     """
@@ -31,14 +31,18 @@ def extract_annotations(s, pa=None):
 
         annotation_match = TAG.match(post_sentence)
         if not annotation_match:
-            raise ParseException('Wrong annotation format: {}'.format(post_sentence))
+            if not post_sentence:
+                msg = 'No annotation specified on line {} for part "{}"'.format(n, sentence)
+            else:
+                msg = 'Wrong annotation format on line {}: {} ({})'.format(n, post_sentence, sentence)
+            raise ParseException(msg)
         annotation = annotation_match.group(1)
 
         p_child = PartAnnotation(sentence, annotation)
         pa.add_child(p_child, start, end + annotation_match.end(1) + 1)
 
         # Recurse into the annotation to find other annotations
-        p_child = extract_annotations(sentence, p_child)
+        p_child = extract_annotations(n, sentence, p_child)
 
     return pa
 
@@ -95,13 +99,13 @@ def start_folia_document(filename):
     return doc
 
 
-def process_line(line, doc):
+def process_line(n, line, doc):
     """
     Processes a single line from the plain-text annotation and converts that to a FoLiA Sentence.
     """
     # Strip the line and create a PartAnnotation structure
     line = line.strip()
-    pa = extract_annotations(line)
+    pa = extract_annotations(n, line)
 
     # Convert the PartAnnotation structure to a FoLiA Sentence
     current_paragraph = doc.paragraphs().next()
@@ -135,7 +139,7 @@ def process_file(dirname, filename):
             try:
                 count_brackets(n, line)
                 check_no_annotation(n, line)
-                process_line(line, doc)
+                process_line(n, line, doc)
             except ParseException as e:
                 parsing_failed = True
                 errors.append(e)
