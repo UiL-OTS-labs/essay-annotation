@@ -40,7 +40,8 @@ def get_corrections(element, doc_id, sentence_nr):
             pos = get_feature(correction, 'pos')
             original = remove_spaces(correction.text(correctionhandling=folia.CorrectionHandling.ORIGINAL))
             corrected = remove_spaces(correction.text(correctionhandling=folia.CorrectionHandling.CURRENT))
-            result.append([doc_id, sentence_nr, original, corrected, correction.cls, problem, pos])
+            sentence = c.ancestor(folia.Sentence).text(correctionhandling=folia.CorrectionHandling.ORIGINAL)
+            result.append([doc_id, sentence_nr, original, corrected, correction.cls, problem, pos, sentence])
     return result
 
 
@@ -78,7 +79,11 @@ def process_file(csv_writer, filename):
         for semrole in sentence.select(folia.SemanticRole):
             problem = get_feature(semrole, 'problem')
             pos = get_feature(semrole, 'pos')
-            csv_writer.writerow([doc.id, sentence_nr, get_text_from_semrole(semrole), '', semrole.cls, problem, pos])
+            try:
+                s = sentence.text(correctionhandling=folia.CorrectionHandling.ORIGINAL)
+            except folia.NoSuchText:
+                s = ''
+            csv_writer.writerow([doc.id, sentence_nr, get_text_from_semrole(semrole), '', semrole.cls, problem, pos, s])
 
 
 def process_folder(folder):
@@ -91,7 +96,8 @@ def process_folder(folder):
         csv_writer = UnicodeWriter(csv_file, delimiter=';')
         csv_writer.writerow(['tekstnummer', 'zin nr',
                              'geannoteerde passage', 'correctie',
-                             'eenheid', 'probleem', 'woordsoort'])
+                             'eenheid', 'probleem', 'woordsoort',
+                             'complete zin'])
 
         # Loop over all .xml-files in the given folder
         for filename in glob.glob(os.path.join(folder, '*.xml')):
