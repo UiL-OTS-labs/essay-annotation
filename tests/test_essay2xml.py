@@ -15,7 +15,7 @@ class TestEssay2XML(unittest.TestCase):
     def test_corrections(self):
         doc = start_folia_document('test')
         line = '[Zwarte pieten/Zwarte Pieten]HN*O zijn zwart als [roed/roet]SPE*I*N [/.]L*O'
-        process_line(line, doc)
+        process_line(1, line, doc)
         s = doc.sentences().next()
         self.assertTrue(s.corrections())
         self.assertEqual(sum(1 for _ in s.select(folia.Correction)), 3)  # there's 3 corrections in the sentence
@@ -24,7 +24,7 @@ class TestEssay2XML(unittest.TestCase):
     def test_2xml(self):
         doc = start_folia_document('test')
         line = u'[Over [√/het]W*O*L weer gesproken]VMT , verwacht niet te veel van de zomers in Nederland, want het regent er heel veel en het is maar weinig echt warm [√/.]L*O'
-        process_line(line, doc)
+        process_line(1, line, doc)
         s = doc.sentences().next()
         self.assertTrue(s.corrections())
         self.assertEqual(sum(1 for _ in s.select(folia.Correction)), 3)  # there's 2 corrections in the sentence
