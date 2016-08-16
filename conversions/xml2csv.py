@@ -40,8 +40,9 @@ def get_corrections(element, doc_id, sentence_nr):
             pos = get_feature(correction, 'pos')
             original = remove_spaces(correction.text(correctionhandling=folia.CorrectionHandling.ORIGINAL))
             corrected = remove_spaces(correction.text(correctionhandling=folia.CorrectionHandling.CURRENT))
-            sentence = c.ancestor(folia.Sentence).text(correctionhandling=folia.CorrectionHandling.ORIGINAL)
-            result.append([doc_id, sentence_nr, original, corrected, correction.cls, problem, pos, sentence])
+            s_original = c.ancestor(folia.Sentence).text(correctionhandling=folia.CorrectionHandling.ORIGINAL)
+            s_corrected = c.ancestor(folia.Sentence).text(correctionhandling=folia.CorrectionHandling.CURRENT)
+            result.append([doc_id, sentence_nr, original, corrected, correction.cls, problem, pos, s_original, s_corrected])
     return result
 
 
@@ -80,10 +81,12 @@ def process_file(csv_writer, filename):
             problem = get_feature(semrole, 'problem')
             pos = get_feature(semrole, 'pos')
             try:
-                s = sentence.text(correctionhandling=folia.CorrectionHandling.ORIGINAL)
+                s_original = sentence.text(correctionhandling=folia.CorrectionHandling.ORIGINAL)
+                s_corrected = sentence.text(correctionhandling=folia.CorrectionHandling.CURRENT)
             except folia.NoSuchText:
-                s = ''
-            csv_writer.writerow([doc.id, sentence_nr, get_text_from_semrole(semrole), '', semrole.cls, problem, pos, s])
+                s_original = ''
+                s_corrected = ''
+            csv_writer.writerow([doc.id, sentence_nr, get_text_from_semrole(semrole), '', semrole.cls, problem, pos, s_original, s_corrected])
 
 
 def process_folder(folder):
@@ -97,7 +100,7 @@ def process_folder(folder):
         csv_writer.writerow(['tekstnummer', 'zin nr',
                              'geannoteerde passage', 'correctie',
                              'eenheid', 'probleem', 'woordsoort',
-                             'complete zin'])
+                             'originele zin', 'gecorrigeerde zin'])
 
         # Loop over all .xml-files in the given folder
         for filename in glob.glob(os.path.join(folder, '*.xml')):
