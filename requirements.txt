@@ -6,5 +6,5 @@
 #
 httplib2==0.9.2           # via pynlpl
 lxml==3.6.4               # via pynlpl, python-docx
-PyNLPl==1.0.7
+PyNLPl==1.0.8
 python-docx==0.8.6
