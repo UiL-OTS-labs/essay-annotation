@@ -14,10 +14,13 @@ def process_file(filename):
     Reads a single FoLiA .xml-file, loops over its Sentences,
     and writes the text to the csv file.
     """
-    fname, _ = os.path.splitext(filename)
+    bname, _ = os.path.splitext(os.path.basename(filename))
+    dname = os.path.dirname(filename)
+    orig_name = os.path.join(dname, 'orig_{}.txt'.format(bname))
+    corr_name = os.path.join(dname, 'corr_{}.txt'.format(bname))
 
-    with codecs.open(fname + '_orig.txt', 'wb', 'utf-8') as orig_file:
-        with codecs.open(fname + '_corr.txt', 'wb', 'utf-8') as corr_file:
+    with codecs.open(orig_name, 'wb', 'utf-8') as orig_file:
+        with codecs.open(corr_name, 'wb', 'utf-8') as corr_file:
             doc = folia.Document(file=filename)
 
             for sentence in doc.sentences():
