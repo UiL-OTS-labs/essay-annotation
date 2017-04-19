@@ -4,14 +4,10 @@
 #
 #    pip-compile --output-file requirements.txt requirements.in
 #
-html5lib==0.999999999     # via rdflib
-httplib2==0.9.2           # via pynlpl
+httplib2==0.10.3          # via pynlpl
 isodate==0.5.4            # via rdflib
-lxml==3.7.0               # via pynlpl, python-docx
-PyNLPl==1.1.0
-pyparsing==2.1.10         # via rdflib
+lxml==3.7.3               # via pynlpl, python-docx
+PyNLPl==1.1.8
+pyparsing==2.2.0          # via rdflib
 python-docx==0.8.6
-rdflib==4.2.1             # via pynlpl, sparqlwrapper
-six==1.10.0               # via html5lib
-SPARQLWrapper==1.8.0      # via rdflib
-webencodings==0.5         # via html5lib
+rdflib==4.2.2             # via pynlpl
