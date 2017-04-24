@@ -145,7 +145,13 @@ def process_file(dirname, filename):
                 errors.append(e)
 
         if not parsing_failed:
-            doc.save(dirname + '/out/' + base + '.xml')
+            outpath = os.path.join(dirname, 'out')
+            outfile = base + '.xml'
+            
+            if not os.path.exists(outpath):
+                os.makedirs(outpath)
+
+            doc.save(os.path.join(outpath, outfile))
         else:
             print 'Parsing failed for {}! Errors:'.format(filename)
             for e in errors:
@@ -162,3 +168,4 @@ def process_folder(dirname):
 
 if __name__ == '__main__':
     process_folder('../data')
+
