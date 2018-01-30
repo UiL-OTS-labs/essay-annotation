@@ -108,7 +108,7 @@ def process_line(n, line, doc):
     pa = extract_annotations(n, line)
 
     # Convert the PartAnnotation structure to a FoLiA Sentence
-    current_paragraph = doc.paragraphs().next()
+    current_paragraph = next(doc.paragraphs())
     roles = []
     if not pa.original and not pa.edited:
         whitespace = pa.to_folia_whitespace(doc, current_paragraph)
@@ -135,7 +135,8 @@ def process_file(dirname, filename):
         doc = start_folia_document(base)
         parsing_failed = False
         errors = []
-        for n, line in enumerate(f):
+        for n, line_bytes in enumerate(f):
+            line = line_bytes.decode()
             try:
                 count_brackets(n, line)
                 check_no_annotation(n, line)
@@ -153,9 +154,9 @@ def process_file(dirname, filename):
 
             doc.save(os.path.join(outpath, outfile))
         else:
-            print 'Parsing failed for {}! Errors:'.format(filename)
+            print('Parsing failed for {}! Errors:'.format(filename))
             for e in errors:
-                print '-', e
+                print('-', e)
 
 
 def process_folder(dirname):
@@ -167,5 +168,4 @@ def process_folder(dirname):
 
 
 if __name__ == '__main__':
-    process_folder('../data')
-
+    process_folder(os.path.join(os.path.dirname(__file__),'..', 'data'))
