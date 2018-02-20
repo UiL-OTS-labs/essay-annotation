@@ -12,6 +12,7 @@ SEMANTICROLES_SET = 'https://raw.githubusercontent.com/UiL-OTS-labs/essay-annota
 WHITESPACE_SET = 'https://raw.githubusercontent.com/UiL-OTS-labs/essay-annotation/master/config/whitespace.foliaset.xml'
 
 TAG = re.compile(r'(\w[\*\+\w]*)')
+ORPHAN_TAG = re.compile(r'(^|[^\]\w\*\+])(\w+[\*\+])')
 
 
 class ParseException(Exception):
@@ -27,6 +28,10 @@ def extract_annotations(n, s, pa=None):
 
     for start, end in get_matching_brackets(s):
         sentence = s[start+1:end]
+        if ORPHAN_TAG.search(sentence):
+            msg = u'Orphan tag found on line {} for part "{}"'.format(n, sentence)
+            raise ParseException(msg)
+
         post_sentence = s[end+1:]
 
         annotation_match = TAG.match(post_sentence)
@@ -129,14 +134,13 @@ def process_file(dirname, filename):
     """
     Processes a plain-text annotation file and converts that to FoLiA XML.
     """
-    with codecs.open(filename, 'rb') as f:
+    with codecs.open(filename, 'rb', encoding='utf-8') as f:
         #print 'Processing', filename
         base = os.path.splitext(os.path.basename(filename))[0]
         doc = start_folia_document(base)
         parsing_failed = False
         errors = []
-        for n, line_bytes in enumerate(f):
-            line = line_bytes.decode()
+        for n, line in enumerate(f):
             try:
                 count_brackets(n, line)
                 check_no_annotation(n, line)
