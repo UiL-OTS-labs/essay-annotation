@@ -108,4 +108,4 @@ def process_folder(folder):
             process_file(csv_writer, filename)
 
 if __name__ == '__main__':
-    process_folder('../data/out')
+    process_folder(os.path.join(os.path.dirname(__file__),'..', 'data', 'out'))
